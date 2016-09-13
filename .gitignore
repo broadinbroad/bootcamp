@@ -1,1 +1,12 @@
 __pycache__/
+
+# Ignore infuriating files.
+.DS_store
+
+# Ignore image files.
+*.jpg
+*.tif
+*.tiff
+*.pdf
+*.svg
+*.eps
