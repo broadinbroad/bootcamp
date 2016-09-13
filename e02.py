@@ -123,3 +123,46 @@ salm_map_tidy = tidy_output(salm_map, line_len=60)
 
 with open(f_direc + 'salmonella_map.fna', 'w') as f:
     f.write(header_str + salm_map_tidy)
+
+# Exercise 2.4
+
+# Part A
+
+def find_start(seq):
+    """Find indices of first base of all start codons in seq"""
+
+    start_idx = []
+
+    for i in range(len(seq)):
+        current_codon = seq[i : i+3]
+        if current_codon == 'ATG':
+            start_idx += i
+
+    return tuple(start_idx)
+
+def find_stop(seq):
+    """Find indices of first of all stop codons in seq"""
+
+    stop_idx = []
+
+    for i in range(len(seq)):
+        current_codon = seq[i : i+3]
+        if current_codon == 'TGA' or current_codon == 'TAG' or current_codon == 'TAA':
+            stop_idx += i
+
+    return tuple(stop_idx)
+
+def in_frame(start,stop):
+    """
+    Determines if indices of start and stop codons
+    allow those codons to be in frame
+    """
+
+    # Start and stop codon indices should be natural numbers
+    if type(start) is not int or type(stop) is not int or start < 1 or stop < 1:
+        return RuntimeError('Start and stop codon indices should be positive integers.')
+
+    if (stop - start) % 3 == 0:
+        return True
+    else:
+        return False
