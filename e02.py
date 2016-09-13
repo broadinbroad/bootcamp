@@ -8,7 +8,11 @@ salm_str = ''
 
 # Data is stored on all lines except the first, so make a string with these
 for i in range(len(f_lines) - 1):
-    line_str = f_lines[i + 1][:-2]
+    # Keep all characters except new line chracter
+    line_str = f_lines[i + 1][:-1]
+    if i < 3:
+        print(line_str)
+        print(f_lines[i + 1])
     salm_str += line_str
 
 # Write this string to a text file
@@ -129,26 +133,26 @@ with open(f_direc + 'salmonella_map.fna', 'w') as f:
 # Part A
 
 def find_start(seq):
-    """Find indices of first base of all start codons in seq"""
+    """Find first index of all start codons in seq"""
 
     start_idx = []
 
     for i in range(len(seq)):
         current_codon = seq[i : i+3]
         if current_codon == 'ATG':
-            start_idx += i
+            start_idx.append(i)
 
     return tuple(start_idx)
 
 def find_stop(seq):
-    """Find indices of first of all stop codons in seq"""
+    """Find first index of all stop codons in seq"""
 
     stop_idx = []
 
     for i in range(len(seq)):
         current_codon = seq[i : i+3]
         if current_codon == 'TGA' or current_codon == 'TAG' or current_codon == 'TAA':
-            stop_idx += i
+            stop_idx.append(i)
 
     return tuple(stop_idx)
 
@@ -159,10 +163,102 @@ def in_frame(start,stop):
     """
 
     # Start and stop codon indices should be natural numbers
-    if type(start) is not int or type(stop) is not int or start < 1 or stop < 1:
+    if type(start) is not int or type(stop) is not int or start < 0 or stop < 0:
         return RuntimeError('Start and stop codon indices should be positive integers.')
 
     if (stop - start) % 3 == 0:
         return True
     else:
         return False
+
+def longest_orf(seq):
+    """Returns indices of largest open reading frame"""
+
+    # Dummy value for longest_orf_len
+    longest_orf_len = 0
+
+    # Find indices of start and stop codons
+    start_codons = find_start(seq)
+    stop_codons = find_stop(seq)
+
+    # Loop through start codons
+    for i, start_codon in enumerate(start_codons):
+        possible_stop = []
+
+        for j, stop_codon in enumerate(stop_codons):
+
+            # Check only stop codons downstream of the start codon
+            if stop_codon > start_codon and in_frame(start_codon, stop_codon):
+                # Append the index of possible stop codons
+                possible_stop.append(stop_codon)
+
+        # If possible stop codons were found
+        if len(possible_stop) > 0:
+            # Compute shortest length, i.e. difference from first (closest) stop codon
+            length = possible_stop[0] - start_codon
+        else:
+            length = 0
+
+        if length > longest_orf_len:
+            longest_orf_len = length
+            print(longest_orf_len)
+            long_start = start_codon
+            long_stop = possible_stop[0]
+
+    return (long_start, long_stop, longest_orf_len)
+
+# Part B
+
+# Read in sequence as string
+with open('salmonella.txt', 'r') as f:
+    salm_list = f.readline()
+
+salm_str = str(salm_list)
+
+# Look for longest orf
+salm_start, salm_stop, _ = longest_orf(salm_str)
+
+# Part C
+
+import bioinfo_dicts
+
+def trans_seq(seq, material='DNA'):
+    """translates a DNA or RNA sequence to protein
+    Assumes start / stop codons are first and last codons"""
+
+    # Check for valid material
+    if material is not 'RNA' and material is not 'DNA':
+        return RuntimeError('Invalid material')
+
+    # Check for valid sequence length
+    if len(seq) % 3 > 0:
+        return RuntimeError('Sequence length should be divisible by 3 (only complete codons).')
+
+    # Convert RNA to DNA, so that all input is uniform
+    if material == 'RNA':
+        seq = seq.replace('U','T')
+
+    # Loop through sequence one codon at a time
+    aa_seq = ''
+    for i in range(0, len(seq), 3):
+        next_codon = seq[i : i+3]
+
+        # Check that next codon is legal
+        if next_codon not in bioinfo_dicts.codons.keys():
+            return RuntimeError(next_codon + ' is not a valid codon.')
+        else:
+            aa_seq += bioinfo_dicts.codons[next_codon]
+
+    return aa_seq
+
+# Translate the longest orf
+salm_orf_dna = salm_str[salm_start : salm_stop + 3]
+
+salm_orf_aa = trans_seq(salm_orf_dna, material='DNA')
+
+# Write output to file
+with open('longest_salm_orf.txt', 'w') as f:
+    f.write(salm_orf_aa)
+
+# Blast the longest ORF,
+# get two-component sensor histidine kinase BarA [Salmonella enterica]
