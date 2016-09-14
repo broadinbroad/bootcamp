@@ -122,9 +122,9 @@ q18m_RK = 1332 # mM**-1
 conc_theor = np.logspace(np.log10(conc_min), np.log10(conc_max), 400)
 
 # Compute bohr_parameters
-wt_bohr = bohr_parameter(conc_theor, wt_RK)
-q18m_bohr = bohr_parameter(conc_theor, q18m_RK)
-q18a_bohr = bohr_parameter(conc_theor, q18a_RK)
+wt_bohr = bohr_parameter(wt_iptg, wt_RK)
+q18m_bohr = bohr_parameter(q18m_iptg, q18m_RK)
+q18a_bohr = bohr_parameter(q18a_iptg, q18a_RK)
 theor_bohr = np.linspace(-6, 6, 400)
 
 # Compute fold changes
