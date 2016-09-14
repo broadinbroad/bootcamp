@@ -104,9 +104,9 @@ def bohr_parameter(c, RK, KdA=0.017, KdI=0.002, Kswitch=5.8):
     KdA_exp = (1 + c/KdA)**2
     KdI_exp = (1 + c/KdI)**2
 
-    large_fraction = RK * KdA_exp / (KdA_exp + Kswitch*KdI_exp)
+    large_fraction = KdA_exp / (KdA_exp + Kswitch*KdI_exp)
 
-    return - (np.log(RK) + np.log(large_fraction))
+    return - np.log(RK) - np.log(large_fraction)
 
 def fold_change_bohr(bohr_parameter):
     """Return fold-change, computed from bohr_parameter"""
@@ -127,18 +127,15 @@ q18m_bohr = bohr_parameter(q18m_iptg, q18m_RK)
 q18a_bohr = bohr_parameter(q18a_iptg, q18a_RK)
 theor_bohr = np.linspace(-6, 6, 400)
 
-# Compute fold changes
-wt_fc_bohr = fold_change_bohr(wt_bohr)
-q18m_fc_bohr = fold_change_bohr(q18m_bohr)
-q18a_fc_bohr = fold_change_bohr(q18a_bohr)
+# Compute theor fold changes
 theor_fc_bohr = fold_change_bohr(theor_bohr)
 
 # Plot theoretical fold change
 alpha = 0.3
 _ = plt.plot(theor_bohr, theor_fc_bohr, color='gray')
-_ = plt.plot(wt_bohr, wt_fc_bohr, '.b', alpha=alpha)
-_ = plt.plot(q18m_bohr, q18m_fc_bohr, '.g', alpha=alpha)
-_ = plt.plot(q18a_bohr, q18a_fc_bohr, '.r', alpha=alpha)
+_ = plt.plot(wt_bohr, wt_fc, '.b', alpha=alpha)
+_ = plt.plot(q18m_bohr, q18m_fc, '.g', alpha=alpha)
+_ = plt.plot(q18a_bohr, q18a_fc, '.r', alpha=alpha)
 
 
 # Axes and title
