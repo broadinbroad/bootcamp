@@ -20,4 +20,4 @@ def ecdf(data):
     # use to computed ecdf
     y = np.arange(1, len(data)+1) / len(data)
 
-    return x, y
+    returnnp.array([x, y])
