@@ -35,9 +35,22 @@ r[0] = 10 # rabbits
 f[0] = 1 # fox
 
 # Numerically integrate
-for i in range(1, len(t)):
+for i in range(1, len(t_range)):
     delta_r = dr_dt(r[i-1], f[i-1]) * delta_t
     delta_f = df_dt(r[i-1], f[i-1]) * delta_t
 
     r[i] = r[i-1] + delta_r
     f[i] = f[i-1] + delta_f
+
+# Plot results
+_ = plt.plot(t_range, r, '.r')
+_ = plt.plot(t_range, f, '.b')
+
+# Axes and title
+plt.title('Lotka-Volterra Model')
+plt.xlabel('Time')
+plt.ylabel('# of animals')
+
+# Legend
+plt.legend(('Rabbits (prey)', 'Foxes (predator)'))
+plt.show()
