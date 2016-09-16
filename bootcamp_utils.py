@@ -97,7 +97,7 @@ def outlier_pixel(image, blur_size, selem_shape='square'):
         selem = skimage.morphology.disk(blur_size)
     else:
         return RuntimeError('Structural element shape must be square or disk.')
-    img_filt = skimage.filters.median(cfp_im, selem)
+    img_filt = skimage.filters.median(image, selem)
 
     return img_filt
 
@@ -109,17 +109,17 @@ def thresh_img(img, thresh_type='min', thresh='otsu'):
     Returns Boolean where segmented objects are True and background is False
     """
 
-    if thresh == 'otsu':
+    if thresh is 'otsu':
         img_thresh = skimage.filters.threshold_otsu(img)
     elif type(thresh)==str:
         return RuntimeError('Threshold should be "otsu" or an integer.')
     else:
         img_thresh = thresh
 
-    if thresh_type=='min':
-        return img > thresh_type
-    elif thresh_type=='max':
-        return img < thresh_type
+    if thresh_type is 'min':
+        return img > img_thresh
+    elif thresh_type is 'max':
+        return img < img_thresh
     else:
         return RuntimeError('Threshold type should be "max" or "min."')
 
@@ -140,32 +140,41 @@ def remove_obj(img_filt, bool_img, rmv_small=True, too_small=50,
                                                   background=0)
 
     # Feed enumerated objects to region props, to get area of each object
-    bool_im_props = skimage.measure.regionprops(bool_img_lab,
+    bool_img_props = skimage.measure.regionprops(bool_img_lab,
                                                 intensity_image=img_filt)
 
     # Iterate through each object
+    n_rmv = 0
     for prop in bool_img_props:
         # Check for objects that are too small.
         if rmv_small:
             if prop.area < too_small:
                 bool_img_lab[bool_img_lab==prop.label] = 0
+                n_rmv +=1
 
         # Check for objects that are too large.
         if rmv_large:
             if prop.area > too_large:
                 bool_img_lab[bool_img_lab==prop.label] = 0
+                n_rmv +=1
 
         # Check for objects that are not eccentric enough
         if rmv_ecc:
-            if prop.eccentriticy < ecc_thresh:
+            if prop.eccentricity < ecc_thresh:
                 bool_img_lab[bool_img_lab==prop.label] = 0
+                n_rmv +=1
+
+        # Make it a boolean again
+        bool_img_bw = bool_img_lab > 0
+
+    return bool_img_bw
 
 # Define a function to (in order): remove outlier pixels, remove uneven illumination,
 # segment cells with a threshold, remove cells of wrong size and shape, and
 # return a labeled image
 
-def img_analyze(img, pix_blur=3, selem_shape='sqaure',
-                back_blur=50,
+def img_analyze(img, pix_blur=3, selem_shape='square',
+                back_blur=500,
                 thresh_type='min', thresh='otsu',
                 too_small=50, too_large=5000, ecc_thresh=0.85):
     """
@@ -184,10 +193,12 @@ def img_analyze(img, pix_blur=3, selem_shape='sqaure',
     """
 
     # Remove outlier pixels
-    img = outlier_pixel(img, pix_blur, selem_shape=selem_shape)
+    # This line fails
+    # img = outlier_pixel(img, pix_blur, selem_shape=selem_shape)
+    img_filt = outlier_pixel(img, pix_blur, selem_shape=selem_shape)
 
     # Remove uneven illumination (after outlier pixels are gone)
-    img_filt = even_illumin(img, back_blur)
+    img_filt = even_illumin(img_filt, back_blur)
 
     # Threshold the filtered image
     img_bool = thresh_img(img_filt, thresh_type=thresh_type, thresh=thresh)
